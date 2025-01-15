@@ -522,44 +522,57 @@
 </div>
 
 <script>
-    document.getElementById("rsvp-form").addEventListener("submit", function(e) {
+    document.getElementById("rsvp-form").addEventListener("submit", async function(e) {
         e.preventDefault(); // Evita el envío normal del formulario
 
-        var url = "https://script.google.com/macros/s/AKfycbxQ_QwKxGOF37-3KTVrCaD39y0J6ykKYhy6MXteRn5Z8sH4IBYzH88Mln62X0ZCSGOt/exec"; // Reemplaza con la URL de Google Apps Script
+        const url = "https://script.google.com/macros/s/AKfycbxQ_QwKxGOF37-3KTVrCaD39y0J6ykKYhy6MXteRn5Z8sH4IBYzH88Mln62X0ZCSGOt/exec"; // URL del script
 
-        var data = {
+        // Captura los valores del formulario y los limpia de espacios en blanco
+        const data = {
             name: document.getElementById("name").value.trim(),
             email: document.getElementById("email").value.trim(),
             phone: document.getElementById("phone").value.trim(),
             message: document.getElementById("message").value.trim()
         };
 
-        if (!data.name || !data.email || !data.phone || !data.message) {
-            alert("Por favor, llena todos los campos antes de enviar.");
+        // Validación: Asegurar que los campos obligatorios no estén vacíos
+        if (!data.name || !data.email) {
+            alert("Por favor, llena los campos obligatorios: Nombre y Correo.");
             return;
         }
 
-        fetch(url, {
-            method: "POST",
-            mode: "cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === "success") {
+        try {
+            // Envío de datos a Google Apps Script
+            const response = await fetch(url, {
+                method: "POST",
+                mode: "cors", // Cambiar a "no-cors" si aún hay errores de CORS
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            // Verifica si la respuesta es válida (en caso de CORS, esto podría no funcionar)
+            if (!response.ok) {
+                throw new Error(`Error en la solicitud: ${response.status}`);
+            }
+
+            const result = await response.json(); // Intenta convertir la respuesta en JSON
+
+            if (result.status === "success") {
                 alert("¡Gracias! Tu confirmación ha sido enviada correctamente.");
                 document.getElementById("rsvp-form").reset();
             } else {
-                alert("Hubo un error: " + (data.message || "Intenta de nuevo más tarde."));
+                alert("Hubo un error: " + (result.message || "Intenta de nuevo más tarde."));
             }
-        })
-        .catch(error => {
+
+        } catch (error) {
             console.error("Error en la solicitud:", error);
-            alert("No se pudo enviar tu confirmación. Intenta nuevamente.");
-        });
+            alert("No se pudo enviar tu confirmación. Verifica tu conexión e intenta nuevamente.");
+        }
     });
 </script>
+
 
 
             
