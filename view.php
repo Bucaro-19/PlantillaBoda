@@ -47,7 +47,7 @@ $result = $conn->query($sql);
             </tbody>
         </table>
         <div class="text-center">
-            <a href="export_csv.php" class="btn buttono">Exportar a CSV</a>
+            <a href="export.php" class="btn buttono">Exportar a CSV</a>
         </div>
     </div>
 </body>
