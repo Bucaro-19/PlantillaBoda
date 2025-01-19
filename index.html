@@ -480,9 +480,7 @@
                 <form id="rsvp-form">
                     <div class="row">
                         <div class="col-12">
-                            <div class="alert alert-success contact__msg" style="display: none" role="alert">
-                                ¡Tu confirmación ha sido enviada correctamente!
-                            </div>
+                            <div id="form-alert" class="alert" style="display: none;" role="alert"></div>
                         </div>
                     </div>
                     
@@ -490,30 +488,30 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <input id="name" name="name" type="text" class="form-control" placeholder="Nombre" required>
+                                <input id="name" name="name" type="text" class="form-control" placeholder="Nombre*" required>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
-                                <input id="email" name="email" type="email" class="form-control" placeholder="Email" required>
+                                <input id="email" name="email" type="email" class="form-control" placeholder="Email">
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
-                                <input id="phone" name="phone" type="text" class="form-control" placeholder="Teléfono" required>
+                                <input id="phone" name="phone" type="text" class="form-control" placeholder="Teléfono*" required>
                             </div>
                         </div> 
                         <div class="col-md-12">
                             <div class="form-group">
-                                <textarea id="message" name="message" cols="30" rows="7" class="form-control" placeholder="Mensaje" required></textarea>
+                                <textarea id="message" name="message" cols="30" rows="7" class="form-control" placeholder="Mensaje"></textarea>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
-                                <button type="submit" class="btn buttono">ENVIAR</button>
+                                <button type="button" id="submit-button" class="btn buttono">ENVIAR</button>
                             </div>
                         </div>
-                        <p>Recuerda llenar todos los espacios incluyendo el de mensaje.</p>
+                        <p>Recuerda llenar los campos obligatorios (*).</p>
                     </div>
                 </form>
             </div>
@@ -522,56 +520,52 @@
 </div>
 
 <script>
-    document.getElementById("rsvp-form").addEventListener("submit", async function(e) {
-        e.preventDefault(); // Evita el envío normal del formulario
+document.getElementById('submit-button').addEventListener('click', function() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
 
-        const url = "https://script.google.com/macros/s/AKfycbwOH869BarcSZvDixEZxbqv-t50AHZoykfiqYWLP_r9MpLe7A8shVh-rxm_ZomXV32j/exec"; // URL del script
+    if (!name || !phone) {
+        const alert = document.getElementById('form-alert');
+        alert.className = 'alert alert-danger';
+        alert.innerText = 'Por favor, llena los campos obligatorios (Nombre y Teléfono).';
+        alert.style.display = 'block';
+        return;
+    }
 
-        // Captura los valores del formulario y los limpia de espacios en blanco
-        const data = {
-            name: document.getElementById("name").value.trim(),
-            email: document.getElementById("email").value.trim(),
-            phone: document.getElementById("phone").value.trim(),
-            message: document.getElementById("message").value.trim()
-        };
+    const data = { name, email, phone, message };
 
-        // Validación: Asegurar que los campos obligatorios no estén vacíos
-        if (!data.name || !data.email) {
-            alert("Por favor, llena los campos obligatorios: Nombre y Correo.");
-            return;
-        }
+    fetch('insert.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data)
+    })
+    .then(response => response.text())
+    .then(result => {
+        const alert = document.getElementById('form-alert');
+        alert.className = 'alert alert-success';
+        alert.innerText = '¡Tu información ha sido enviada correctamente!';
+        alert.style.display = 'block';
 
-        try {
-            // Envío de datos a Google Apps Script
-            const response = await fetch(url, {
-                method: "POST",
-                mode: "cors", // Cambiar a "no-cors" si aún hay errores de CORS
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            });
-
-            // Verifica si la respuesta es válida (en caso de CORS, esto podría no funcionar)
-            if (!response.ok) {
-                throw new Error(`Error en la solicitud: ${response.status}`);
-            }
-
-            const result = await response.json(); // Intenta convertir la respuesta en JSON
-
-            if (result.status === "success") {
-                alert("¡Gracias! Tu confirmación ha sido enviada correctamente.");
-                document.getElementById("rsvp-form").reset();
-            } else {
-                alert("Hubo un error: " + (result.message || "Intenta de nuevo más tarde."));
-            }
-
-        } catch (error) {
-            console.error("Error en la solicitud:", error);
-            alert("No se pudo enviar tu confirmación. Verifica tu conexión e intenta nuevamente.");
-        }
+        // Resetea el formulario después de 2 segundos
+        setTimeout(() => {
+            alert.style.display = 'none';
+            document.getElementById('rsvp-form').reset();
+        }, 2000);
+    })
+    .catch(error => {
+        const alert = document.getElementById('form-alert');
+        alert.className = 'alert alert-danger';
+        alert.innerText = 'Hubo un error al enviar la información. Por favor, inténtalo de nuevo.';
+        alert.style.display = 'block';
     });
+});
 </script>
+
+
+
+
 
 
 
